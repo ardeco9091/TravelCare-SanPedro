@@ -1233,6 +1233,23 @@ html, body {
   color: var(--ink-muted);
 }
 
+.admin-auth-bar {
+  margin: 0 24px 16px;
+  padding: 16px;
+  border: 1px solid rgba(38, 51, 61, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-auth-bar form {
+  align-items: end;
+  gap: 12px;
+}
+
+.admin-auth-bar > .admin-help {
+  margin: 8px 0 0;
+}
+
 .admin-grid-2 {
   display: grid;
   grid-template-columns: 1fr;

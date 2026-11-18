@@ -1,12 +1,9 @@
 // =========================================================
 // CATÁLOGO AMPLIADO VERIFICADO EN GOOGLE MAPS — SAN PEDRO DE JUJUY
-// 25 prestadores y servicios reales en Alojamiento, Salud y Transporte
+// 26 prestadores y servicios reales en Alojamiento, Salud y Transporte
 // + Panel de Autogestión (Admin) e Integrantes del Proyecto
 // =========================================================
 const CENTRO_SAN_PEDRO = [-24.2312, -64.8682];
-const STORAGE_KEY_PLACES = "travelcare_spj_places_v6";
-const STORAGE_KEY_TEAM = "travelcare_spj_team_v6";
-
 const DEFAULT_TEAM = {
   integrantes: "Mayra y equipo (Editá los nombres desde el botón Admin)",
   institucion: "Prácticas Profesionalizantes II · Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9",
@@ -449,30 +446,8 @@ const NOMBRES_CATEGORIA = {
   transporte: "Transporte local"
 };
 
-// =========================================================
-// CARGA DE DATOS LOCALES EXISTENTES
-// =========================================================
-function cargarLugares() {
-  try {
-    const guardado = localStorage.getItem(STORAGE_KEY_PLACES);
-    if (guardado) {
-      const parsed = JSON.parse(guardado);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_LUGARES));
-}
-
-function cargarEquipo() {
-  try {
-    const guardado = localStorage.getItem(STORAGE_KEY_TEAM);
-    if (guardado) return { ...DEFAULT_TEAM, ...JSON.parse(guardado) };
-  } catch (e) {}
-  return { ...DEFAULT_TEAM };
-}
-
-let LUGARES = cargarLugares();
-let EQUIPO = cargarEquipo();
+let LUGARES = JSON.parse(JSON.stringify(DEFAULT_LUGARES));
+let EQUIPO = { ...DEFAULT_TEAM };
 
 // =========================================================
 // ESTADO EFÍMERO EN MEMORIA (PRIVACY FIREWALL PARA EL VIAJERO)
@@ -924,6 +899,214 @@ const adminTeamForm = document.getElementById("admin-team-form");
 const tIntegrantes = document.getElementById("t-integrantes");
 const tInstitucion = document.getElementById("t-institucion");
 const tDestino = document.getElementById("t-destino");
+const supabaseConnectionStatus = document.getElementById("supabase-connection-status");
+const supabaseAuthForm = document.getElementById("supabase-auth-form");
+const supabaseEmailInput = document.getElementById("supabase-email");
+const supabasePasswordInput = document.getElementById("supabase-password");
+const supabaseAuthStatus = document.getElementById("supabase-auth-status");
+const btnSupabaseSignOut = document.getElementById("btn-supabase-sign-out");
+
+const supabaseConfig = window.TRAVELCARE_SUPABASE_CONFIG || {};
+const supabaseConfigured = Boolean(supabaseConfig.url && supabaseConfig.publishableKey);
+let supabaseClient = null;
+let esAdmin = false;
+
+function mostrarEstadoSupabase(mensaje) {
+  supabaseAuthStatus.textContent = mensaje;
+}
+
+function actualizarControlesAdmin() {
+  adminPlaceForm.hidden = !esAdmin;
+  adminTeamForm.querySelectorAll("input, textarea").forEach((campo) => {
+    campo.readOnly = !esAdmin;
+  });
+  adminTeamForm.querySelector('button[type="submit"]').disabled = !esAdmin;
+  if (esAdmin) adminTeamForm.querySelector('button[type="submit"]').textContent = "Guardar integrantes";
+  renderizarListaAdmin();
+}
+
+function convertirLugarDesdeSupabase(row) {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    categoria: row.categoria,
+    categoriaLabel: row.categoria_label,
+    direccion: row.direccion,
+    estado: row.estado,
+    abiertoAhora: row.abierto_ahora,
+    destacado: row.destacado,
+    promocion: row.promocion,
+    notas: row.notas,
+    telefono: row.telefono,
+    whatsapp: row.whatsapp,
+    lat: Number(row.lat),
+    lng: Number(row.lng)
+  };
+}
+
+async function cargarDatosSupabase() {
+  if (!supabaseClient) return;
+  const { data: lugares, error: errorLugares } = await supabaseClient
+    .from("places")
+    .select("*")
+    .order("id");
+  if (errorLugares) throw errorLugares;
+
+  const { data: equipo, error: errorEquipo } = await supabaseClient
+    .from("project_settings")
+    .select("integrantes, institucion, destino")
+    .eq("id", "main")
+    .maybeSingle();
+  if (errorEquipo) throw errorEquipo;
+
+  LUGARES = (lugares || []).map(convertirLugarDesdeSupabase);
+  if (equipo) EQUIPO = { ...DEFAULT_TEAM, ...equipo };
+  actualizarCreditosUI();
+  renderizarServicios();
+  renderizarListaAdmin();
+  tIntegrantes.value = EQUIPO.integrantes;
+  tInstitucion.value = EQUIPO.institucion;
+  tDestino.value = EQUIPO.destino;
+}
+
+async function actualizarSesionAdmin(session) {
+  esAdmin = false;
+  supabaseAuthForm.classList.toggle("hidden", Boolean(session));
+  btnSupabaseSignOut.classList.toggle("hidden", !session);
+
+  if (!session) {
+    mostrarEstadoSupabase(supabaseConfigured
+      ? "Ingresá con la cuenta administradora creada en Supabase."
+      : "Configurá la URL y la clave pública de Supabase para habilitar el acceso.");
+  } else {
+    const { data, error } = await supabaseClient.rpc("is_travelcare_admin");
+    esAdmin = !error && data === true;
+    mostrarEstadoSupabase(error
+      ? "No se pudieron comprobar los permisos. Revisá schema.sql en Supabase."
+      : esAdmin
+        ? `Sesión administradora: ${session.user.email}`
+        : "La cuenta inició sesión, pero aún no tiene permiso de administradora.");
+  }
+
+  actualizarControlesAdmin();
+}
+
+async function inicializarSupabase() {
+  if (!supabaseConfigured || !window.supabase?.createClient) {
+    supabaseAuthForm.classList.add("hidden");
+    supabaseConnectionStatus.textContent = "Creá un proyecto Supabase y completá supabase-config.js para guardar cambios en la nube.";
+    actualizarControlesAdmin();
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey);
+  supabaseConnectionStatus.textContent = "Conectando con la base de datos de TravelCare…";
+  try {
+    await cargarDatosSupabase();
+    supabaseConnectionStatus.textContent = "Catálogo sincronizado con Supabase.";
+  } catch (error) {
+    supabaseConnectionStatus.textContent = `No se pudo cargar Supabase: ${error.message}`;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) mostrarEstadoSupabase(`No se pudo leer la sesión: ${error.message}`);
+  await actualizarSesionAdmin(data?.session || null);
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    setTimeout(() => actualizarSesionAdmin(session), 0);
+  });
+}
+
+supabaseAuthForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient) return;
+  mostrarEstadoSupabase("Ingresando…");
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: supabaseEmailInput.value.trim(),
+    password: supabasePasswordInput.value
+  });
+  supabasePasswordInput.value = "";
+  if (error) {
+    mostrarEstadoSupabase(`No se pudo iniciar sesión: ${error.message}`);
+    return;
+  }
+  await actualizarSesionAdmin(data.session);
+});
+
+btnSupabaseSignOut.addEventListener("click", async () => {
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) mostrarEstadoSupabase(`No se pudo cerrar sesión: ${error.message}`);
+  else await actualizarSesionAdmin(null);
+});
+
+adminPlaceForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient || !esAdmin) return;
+  const [lat, lng] = fZona.value.split(",").map(Number);
+  const categoria = fCategoria.value;
+  const payload = {
+    nombre: fNombre.value.trim(),
+    categoria,
+    categoria_label: NOMBRES_CATEGORIA[categoria],
+    direccion: fDireccion.value.trim(),
+    estado: fEstado.value.trim(),
+    telefono: fTelefono.value.trim() || null,
+    whatsapp: fWhatsapp.value.trim() || null,
+    notas: fNotas.value.trim(),
+    promocion: fPromocion.value.trim() || null,
+    destacado: fDestacado.checked,
+    abierto_ahora: fAbierto.checked,
+    lat,
+    lng
+  };
+  const id = Number(editPlaceId.value);
+  const { error } = id
+    ? await supabaseClient.from("places").update(payload).eq("id", id)
+    : await supabaseClient.from("places").insert(payload);
+  if (error) {
+    mostrarEstadoSupabase(`No se pudo guardar el prestador: ${error.message}`);
+    return;
+  }
+  adminPlaceForm.reset();
+  editPlaceId.value = "";
+  adminFormTitle.textContent = "Agregar nuevo comercio / servicio";
+  btnCancelEdit.classList.add("hidden");
+  fAbierto.checked = true;
+  try {
+    await cargarDatosSupabase();
+    mostrarEstadoSupabase("Prestador guardado en Supabase.");
+  } catch (loadError) {
+    mostrarEstadoSupabase(`El cambio se guardó, pero no se pudo actualizar la vista: ${loadError.message}`);
+  }
+});
+
+btnCancelEdit.addEventListener("click", () => {
+  adminPlaceForm.reset();
+  editPlaceId.value = "";
+  adminFormTitle.textContent = "Agregar nuevo comercio / servicio";
+  btnCancelEdit.classList.add("hidden");
+  fAbierto.checked = true;
+});
+
+adminTeamForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient || !esAdmin) return;
+  const payload = {
+    id: "main",
+    integrantes: tIntegrantes.value.trim(),
+    institucion: tInstitucion.value.trim(),
+    destino: tDestino.value.trim(),
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await supabaseClient.from("project_settings").upsert(payload);
+  if (error) {
+    mostrarEstadoSupabase(`No se pudieron guardar los integrantes: ${error.message}`);
+    return;
+  }
+  EQUIPO = { ...DEFAULT_TEAM, ...payload };
+  actualizarCreditosUI();
+  mostrarEstadoSupabase("Integrantes y datos del proyecto guardados en Supabase.");
+});
 
 function abrirPanelAdmin(tabInicial = "servicios") {
   adminModal.classList.remove("hidden");
@@ -971,15 +1154,87 @@ function renderizarListaAdmin() {
   lista.forEach((lugar) => {
     const row = document.createElement("div");
     row.className = "admin-row";
-    row.innerHTML = `
-      <div class="admin-row__info">
-        <strong>${lugar.nombre}</strong>
-        <p>${lugar.categoriaLabel} · ${lugar.direccion} · <em>${lugar.estado}</em></p>
-      </div>
-    `;
+    const info = document.createElement("div");
+    info.className = "admin-row__info";
+    const nombre = document.createElement("strong");
+    nombre.textContent = lugar.nombre;
+    const detalle = document.createElement("p");
+    detalle.textContent = `${lugar.categoriaLabel} · ${lugar.direccion} · ${lugar.estado}`;
+    info.append(nombre, detalle);
+    row.append(info);
+
+    if (esAdmin) {
+      const controls = document.createElement("div");
+      controls.className = "admin-row__controls";
+      controls.innerHTML = `
+        <button type="button" class="mini-pill-btn ${lugar.destacado ? "mini-pill-btn--star" : ""}" data-action="star" data-id="${lugar.id}">
+          ${lugar.destacado ? "★ Destacado" : "☆ Básico"}
+        </button>
+        <button type="button" class="mini-pill-btn" data-action="edit" data-id="${lugar.id}">Editar</button>
+        <button type="button" class="mini-pill-btn mini-pill-btn--del" data-action="delete" data-id="${lugar.id}">Eliminar</button>
+      `;
+      row.append(controls);
+    }
     adminPlacesTable.appendChild(row);
   });
 }
+
+adminPlacesTable.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button || !esAdmin || !supabaseClient) return;
+  const id = Number(button.dataset.id);
+  const action = button.dataset.action;
+  const place = LUGARES.find((item) => item.id === id);
+
+  if (action === "edit" && place) {
+    editPlaceId.value = String(place.id);
+    adminFormTitle.textContent = `Editando: ${place.nombre}`;
+    btnCancelEdit.classList.remove("hidden");
+    fNombre.value = place.nombre;
+    fCategoria.value = place.categoria;
+    fDireccion.value = place.direccion;
+    fEstado.value = place.estado;
+    fTelefono.value = place.telefono || "";
+    fWhatsapp.value = place.whatsapp || "";
+    fNotas.value = place.notas || "";
+    fPromocion.value = place.promocion || "";
+    fDestacado.checked = Boolean(place.destacado);
+    fAbierto.checked = Boolean(place.abiertoAhora);
+    const nearestZone = [...fZona.options].sort((a, b) => {
+      const distance = (option) => {
+        const [optionLat, optionLng] = option.value.split(",").map(Number);
+        return Math.hypot(optionLat - place.lat, optionLng - place.lng);
+      };
+      return distance(a) - distance(b);
+    })[0];
+    if (nearestZone) fZona.value = nearestZone.value;
+    adminPlaceForm.scrollIntoView({ behavior: "smooth" });
+    return;
+  }
+
+  if (action === "delete" && place && confirm(`¿Eliminar ${place.nombre}?`)) {
+    const { error } = await supabaseClient.from("places").delete().eq("id", id);
+    if (error) {
+      mostrarEstadoSupabase(`No se pudo eliminar el prestador: ${error.message}`);
+      return;
+    }
+  } else if (action === "star" && place) {
+    const { error } = await supabaseClient.from("places").update({ destacado: !place.destacado }).eq("id", id);
+    if (error) {
+      mostrarEstadoSupabase(`No se pudo actualizar el destacado: ${error.message}`);
+      return;
+    }
+  } else {
+    return;
+  }
+
+  try {
+    await cargarDatosSupabase();
+    mostrarEstadoSupabase("Cambios guardados en Supabase.");
+  } catch (error) {
+    mostrarEstadoSupabase(`El cambio se guardó, pero no se pudo actualizar la vista: ${error.message}`);
+  }
+});
 
 adminSearch.addEventListener("input", renderizarListaAdmin);
 
@@ -1060,3 +1315,4 @@ emergencyModal.addEventListener("click", (e) => {
 // Inicializar créditos y contadores al cargar
 actualizarCreditosUI();
 renderizarServicios();
+inicializarSupabase();

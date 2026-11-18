@@ -342,7 +342,7 @@
       <div class="admin-panel">
         <div class="admin-panel__header">
           <div>
-            <span class="admin-pill">Panel de consulta · TravelCare</span>
+          <span class="admin-pill">Administración de TravelCare</span>
             <h3 id="admin-modal-title">Administración de TravelCare</h3>
           </div>
           <div class="admin-header-actions">
@@ -350,14 +350,29 @@
           </div>
         </div>
 
-        <p class="admin-help" role="status">
-          La edición está pausada hasta conectar Supabase Auth y guardar los cambios en la base de datos.
+        <p id="supabase-connection-status" class="admin-help" role="status">
+          Configurá Supabase para guardar los cambios en la nube.
         </p>
+        <div class="admin-auth-bar">
+          <form id="supabase-auth-form" class="admin-grid-2" hidden>
+            <div class="field-group">
+              <label for="supabase-email">Correo administrador</label>
+              <input type="email" id="supabase-email" required autocomplete="username" />
+            </div>
+            <div class="field-group">
+              <label for="supabase-password">Contraseña</label>
+              <input type="password" id="supabase-password" required autocomplete="current-password" />
+            </div>
+            <button type="submit" class="btn-admin-secondary">Ingresar</button>
+          </form>
+          <button type="button" id="btn-supabase-sign-out" class="btn-admin-secondary hidden">Cerrar sesión</button>
+          <p id="supabase-auth-status" class="admin-help" role="status"></p>
+        </div>
 
         <!-- Pestañas del Panel Admin -->
         <div class="admin-tabs" role="tablist">
           <button type="button" class="admin-tab admin-tab--active" data-admin-tab="servicios">
-            Prestadores y Servicios (<span id="admin-count-badge">25</span>)
+            Prestadores y Servicios (<span id="admin-count-badge">26</span>)
           </button>
           <button type="button" class="admin-tab" data-admin-tab="equipo">
             Integrantes y Proyecto
@@ -491,7 +506,7 @@
             </div>
 
             <div class="admin-form__actions">
-              <button type="submit" class="btn-admin-primary" disabled>Edición pausada</button>
+                <button type="submit" class="btn-admin-primary" disabled>Guardar integrantes</button>
             </div>
           </form>
         </div>
@@ -507,6 +522,8 @@
     crossorigin=""
   ></script>
 
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Lógica, geolocalización efímera, panel admin y catálogo real de TravelCare -->
   <script src="app.js"></script>
 </body>

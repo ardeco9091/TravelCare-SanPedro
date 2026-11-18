@@ -5,4 +5,19 @@ Materia: Prácticas Profesionalizantes II · Destino Piloto: San Pedro de Jujuy
 
 PANEL DE CONSULTA:
 - Los prestadores e integrantes se pueden consultar desde el panel.
-- La edición está pausada hasta integrar Supabase Auth y persistencia en la base de datos.
+- La edición se habilita al conectar Supabase Auth y la base de datos.
+
+CONFIGURAR SUPABASE:
+1. Crear un proyecto en Supabase.
+2. Abrir SQL Editor y ejecutar supabase/schema.sql y luego supabase/seed.sql.
+3. En Authentication → Users, crear el usuario administrador con correo y contraseña.
+4. En SQL Editor, habilitar ese usuario como administrador:
+   insert into public.admin_users (user_id)
+   select id from auth.users where email = 'TU_CORREO_DE_ADMIN';
+5. En Project Settings → API, copiar Project URL y la clave pública publishable/anon
+   en supabase-config.js.
+6. Configurar la URL pública de TravelCare en Authentication → URL Configuration
+   para permitir la sesión desde el sitio publicado.
+
+La clave publishable/anon es para el navegador y solo es segura con RLS activo.
+Nunca colocar una clave secret ni service_role en archivos del cliente.
