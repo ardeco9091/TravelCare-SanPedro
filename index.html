@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TravelCare — Tu destino, más cerca | San Pedro de Jujuy</title>
+
+  <!-- Tipografías editoriales y modernas (Playfair Display + Plus Jakarta Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Leaflet CSS (Capa 3: APIs y Mapas) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- Estilos propios de TravelCare (Capa 4: Frontend y UI Responsiva) -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <!-- Fondo decorativo con curvas topográficas adaptable a toda la pantalla -->
+    <svg class="topo-bg" viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M-80 140C220 80 440 240 760 180C1080 120 1240 30 1520 90" stroke="#D8CEBE" stroke-width="1.4" />
+      <path d="M-80 185C240 125 460 285 780 225C1100 165 1260 75 1520 135" stroke="#D8CEBE" stroke-width="1.4" />
+      <path d="M-60 470C280 410 520 550 860 495C1180 440 1320 340 1520 390" stroke="#D8CEBE" stroke-width="1.4" />
+      <path d="M-60 515C300 455 540 595 880 540C1200 485 1340 385 1520 435" stroke="#D8CEBE" stroke-width="1.4" />
+      <path d="M-40 780C320 720 620 840 960 790C1260 745 1380 670 1540 710" stroke="#D8CEBE" stroke-width="1.4" />
+    </svg>
+
+    <!-- =========================================================
+         PANTALLA 1: PORTADA / BIENVENIDA FULL-SCREEN RESPONSIVE
+         ========================================================= -->
+    <section id="screen-welcome" class="screen screen--active" aria-label="Bienvenida TravelCare">
+      <div class="welcome-grid">
+        <div class="welcome-content">
+          <div class="brand-logo-wrap" id="logo-container">
+            <img src="logo.png" alt="TravelCare" class="brand-logo-img" />
+          </div>
+
+          <p class="welcome-eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/>
+            </svg>
+            <span>Zona Cero · San Pedro de Jujuy (Piloto)</span>
+          </p>
+
+          <div class="brand-divider" aria-hidden="true"></div>
+
+          <h1 class="welcome-headline">Tu destino,<br />más cerca</h1>
+          <p class="welcome-subtitle">
+            Un único punto de verdad para el viajero: alojamiento validado, guardias médicas, farmacias de turno y remiseras homologadas en un solo lugar.
+          </p>
+
+          <div class="welcome-pills" aria-hidden="true">
+            <span class="welcome-pill">Alojamiento</span>
+            <span class="welcome-pill">Salud y farmacias</span>
+            <span class="welcome-pill">Transporte local</span>
+          </div>
+
+          <div class="welcome-cta-wrapper">
+            <button type="button" id="btn-explore" class="btn-primary">
+              <span>Explorar destino</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <!-- Créditos del equipo en portada -->
+          <div class="welcome-credits" id="welcome-credits">
+            <span class="welcome-credits__label">Proyecto Prácticas Profesionalizantes II · IES N.° 9</span>
+            <p class="welcome-credits__team" id="welcome-team-names">Integrantes: Mayra y equipo (Editable en Admin)</p>
+          </div>
+        </div>
+
+        <div class="welcome-hero">
+          <svg class="hero-illustration" viewBox="0 0 640 640" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Paisaje montañoso de Jujuy">
+            <defs>
+              <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#8FAAC2" />
+                <stop offset="55%" stop-color="#D4B799" />
+                <stop offset="100%" stop-color="#E5C39C" />
+              </linearGradient>
+              <linearGradient id="hillBack" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#6B7D8C" />
+                <stop offset="100%" stop-color="#485966" />
+              </linearGradient>
+              <linearGradient id="hillMid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#B97A57" />
+                <stop offset="100%" stop-color="#8F5539" />
+              </linearGradient>
+              <linearGradient id="hillFront" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#3C4E59" />
+                <stop offset="100%" stop-color="#222D35" />
+              </linearGradient>
+            </defs>
+
+            <rect width="640" height="640" fill="url(#skyGrad)" />
+            <ellipse cx="210" cy="155" rx="115" ry="26" fill="#F4E6D4" opacity="0.55" />
+            <ellipse cx="455" cy="128" rx="135" ry="28" fill="#F4E6D4" opacity="0.45" />
+            <path d="M0,295 L110,205 L230,265 L365,180 L505,255 L640,195 L640,640 L0,640 Z" fill="url(#hillBack)" />
+            <path d="M0,380 C130,290 250,320 370,275 C490,230 565,275 640,260 L640,640 L0,640 Z" fill="url(#hillMid)" />
+            <path d="M160,425 Q320,355 470,395 T640,370" stroke="#D9A07B" stroke-width="2.5" fill="none" opacity="0.65" />
+            <path d="M0,465 C165,390 330,495 510,415 C570,390 610,380 640,385 L640,640 L0,640 Z" fill="url(#hillFront)" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         PANTALLA 2: EXPLORADOR DE SERVICIOS Y MAPA FULL-SCREEN
+         ========================================================= -->
+    <section id="screen-home" class="screen" aria-label="Explorar servicios en San Pedro de Jujuy">
+      <!-- Barra superior fija de ancho completo -->
+      <header class="topbar">
+        <div class="topbar__inner">
+          <div class="topbar__brand">
+            <button type="button" id="btn-back-welcome" class="brand-mini-btn" title="Volver a la portada">
+              <img src="logo.png" alt="TravelCare" class="brand-mini-logo" />
+            </button>
+            <span class="topbar__sep" aria-hidden="true"></span>
+            <p class="location-badge">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/>
+              </svg>
+              <span>San Pedro de Jujuy, Jujuy</span>
+            </p>
+          </div>
+
+          <div class="topbar__actions">
+            <button type="button" id="btn-nav-home" class="nav-link-btn">Inicio</button>
+
+            <button type="button" id="btn-geo" class="geo-btn" title="Calcular distancia real desde tu dispositivo sin guardar tu ruta">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round" />
+              </svg>
+              <span id="btn-geo-text">Mi ubicación</span>
+            </button>
+
+            <button type="button" id="btn-open-admin" class="admin-nav-btn" title="Consultar prestadores e integrantes">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+              </svg>
+              <span>Admin</span>
+            </button>
+
+            <button type="button" id="btn-emergency" class="profile-btn" title="Teléfonos útiles y emergencias" aria-label="Teléfonos útiles y emergencias">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+              </svg>
+              <span class="profile-btn__label">Emergencias</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Espacio de trabajo responsive: 1 columna en móvil, 2 columnas en PC -->
+      <div class="explorer-layout">
+        <!-- Columna izquierda: Saludo, buscador, categorías, filtros y listado -->
+        <aside class="sidebar-panel">
+          <div>
+            <h2 class="home-greeting">¡Hola! ¿Qué necesitás encontrar hoy?</h2>
+            <p class="geo-status-bar" id="geo-status-bar">
+              Distancias calculadas desde Plaza Gral. Belgrano (Centro) ·
+              <button type="button" id="btn-geo-inline" class="inline-link-btn">Activar GPS efímero</button>
+            </p>
+          </div>
+
+          <!-- Paso 1: Búsqueda -->
+          <div class="search-box">
+            <svg class="search-box__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+            </svg>
+            <input
+              type="text"
+              id="search-input"
+              class="search-box__input"
+              placeholder="Buscá hotel, clínica, farmacia, remis..."
+              autocomplete="off"
+            />
+            <button type="button" id="btn-clear-search" class="search-box__clear hidden" aria-label="Limpiar búsqueda">
+              ×
+            </button>
+          </div>
+
+          <!-- Los tres pilares del ecosistema inicial (MVP) -->
+          <div class="categories-list" role="group" aria-label="Categorías de servicios">
+            <button type="button" class="category-card" data-category="alojamiento">
+              <div class="category-card__icon category-card__icon--navy">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M3 7v11M3 14h18M21 18v-5a3 3 0 00-3-3h-7v4" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="7" cy="10.5" r="1.8" />
+                </svg>
+              </div>
+              <div class="category-card__info">
+                <h3>Alojamiento</h3>
+                <p>Hoteles, residenciales y hospedajes</p>
+              </div>
+              <span class="category-card__arrow category-card__arrow--navy" aria-hidden="true">→</span>
+            </button>
+
+            <button type="button" class="category-card" data-category="salud">
+              <div class="category-card__icon category-card__icon--sage">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div class="category-card__info">
+                <h3>Salud y farmacias</h3>
+                <p>Hospital, sanatorios, clínicas y farmacias</p>
+              </div>
+              <span class="category-card__arrow category-card__arrow--sage" aria-hidden="true">→</span>
+            </button>
+
+            <button type="button" class="category-card" data-category="transporte">
+              <div class="category-card__icon category-card__icon--terracotta">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M5 11l1.5-4.5A2 2 0 018.4 5h7.2a2 2 0 011.9 1.5L19 11" stroke-linejoin="round" />
+                  <rect x="3" y="11" width="18" height="6" rx="2" />
+                  <circle cx="7" cy="17" r="1.5" />
+                  <circle cx="17" cy="17" r="1.5" />
+                </svg>
+              </div>
+              <div class="category-card__info">
+                <h3>Transporte local</h3>
+                <p>Remises 24 hs, radio taxi y terminal</p>
+              </div>
+              <span class="category-card__arrow category-card__arrow--terracotta" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <!-- Paso 2: Filtro Inteligente -->
+          <div class="smart-filters" aria-label="Filtros inteligentes">
+            <div class="smart-filters__group">
+              <label for="sort-select" class="smart-filters__label">Ordenar:</label>
+              <select id="sort-select" class="smart-select">
+                <option value="cercania">Más cercanos (km)</option>
+                <option value="destacados">Destacados primero</option>
+                <option value="nombre">Alfabético (A–Z)</option>
+              </select>
+            </div>
+
+            <button type="button" id="btn-only-open" class="chip-toggle" aria-pressed="false">
+              <span class="status-dot"></span>
+              <span>Abierto / 24 hs</span>
+            </button>
+          </div>
+
+          <!-- Listado de resultados -->
+          <div class="results-block">
+            <div class="results-block__header">
+              <span class="results-block__title">Servicios disponibles</span>
+              <span id="results-count-side" class="filter-badge">25 lugares</span>
+            </div>
+            <div id="places-list" class="places-list"></div>
+          </div>
+        </aside>
+
+        <!-- Columna derecha: Paso 3 - Mapa Interactivo Panorámico -->
+        <section class="map-panel" aria-label="Mapa interactivo">
+          <div class="map-section__header">
+            <div>
+              <h3 class="section-title">Explorá cerca tuyo</h3>
+              <p class="section-subtitle">Visualización espacial de servicios verificados en San Pedro de Jujuy</p>
+            </div>
+            <div class="filter-status">
+              <span id="filter-label" class="filter-badge">Todos (25)</span>
+              <button type="button" id="btn-reset-filter" class="reset-link hidden">Ver todos</button>
+            </div>
+          </div>
+
+          <div class="map-wrapper">
+            <div id="map" role="region" aria-label="Mapa de servicios en San Pedro de Jujuy"></div>
+            <button type="button" id="btn-recenter" class="recenter-btn" title="Centrar mapa en San Pedro de Jujuy" aria-label="Centrar mapa">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Pie de página de privacidad + Integrantes del grupo -->
+          <footer class="privacy-footer">
+            <div class="privacy-footer__top">
+              <div class="privacy-footer__badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span>Privacy Firewall Activo</span>
+              </div>
+              <p class="privacy-footer__text">
+                Geolocalización efímera en tu dispositivo (Opt-in). No almacenamos historial de rutas ni datos médicos o clínicos.
+              </p>
+            </div>
+
+            <div class="credits-bar" id="footer-credits-bar">
+              <div>
+                <strong id="footer-institution">Prácticas Profesionalizantes II · Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9</strong>
+                <p id="footer-team-display">Integrantes: Mayra y equipo · Piloto San Pedro de Jujuy (2026)</p>
+              </div>
+              <button type="button" id="btn-edit-credits" class="inline-link-btn">Ver integrantes</button>
+            </div>
+          </footer>
+        </section>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         MODAL DE TELÉFONOS ÚTILES Y EMERGENCIAS
+         ========================================================= -->
+    <div id="emergency-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal__card">
+        <div class="modal__header">
+          <h3 id="modal-title">Asistencia y Emergencias</h3>
+          <button type="button" id="btn-close-modal" class="modal__close" aria-label="Cerrar">×</button>
+        </div>
+        <p class="modal__desc">Contacto directo con guardias y servicios de urgencia en San Pedro de Jujuy:</p>
+        <ul class="emergency-list">
+          <li><strong>Emergencias Médicas (SAME):</strong> <a href="tel:107" class="tel-link">107</a></li>
+          <li><strong>Hospital Dr. Guillermo C. Paterson:</strong> <a href="tel:+543888420006" class="tel-link">(03888) 42-0006</a></li>
+          <li><strong>Sanatorio Santa María:</strong> <a href="tel:+543888424327" class="tel-link">(03888) 42-4327</a></li>
+          <li><strong>Policía de la Provincia:</strong> <a href="tel:911" class="tel-link">911</a></li>
+          <li><strong>Bomberos Voluntarios:</strong> <a href="tel:100" class="tel-link">100</a></li>
+          <li><strong>Defensa Civil:</strong> <a href="tel:103" class="tel-link">103</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         PANEL DE CONSULTA DE PRESTADORES Y EQUIPO
+         ========================================================= -->
+    <div id="admin-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
+      <div class="admin-panel">
+        <div class="admin-panel__header">
+          <div>
+            <span class="admin-pill">Panel de consulta · TravelCare</span>
+            <h3 id="admin-modal-title">Administración de TravelCare</h3>
+          </div>
+          <div class="admin-header-actions">
+            <button type="button" id="btn-close-admin" class="modal__close" aria-label="Cerrar panel">×</button>
+          </div>
+        </div>
+
+        <p class="admin-help" role="status">
+          La edición está pausada hasta conectar Supabase Auth y guardar los cambios en la base de datos.
+        </p>
+
+        <!-- Pestañas del Panel Admin -->
+        <div class="admin-tabs" role="tablist">
+          <button type="button" class="admin-tab admin-tab--active" data-admin-tab="servicios">
+            Prestadores y Servicios (<span id="admin-count-badge">25</span>)
+          </button>
+          <button type="button" class="admin-tab" data-admin-tab="equipo">
+            Integrantes y Proyecto
+          </button>
+        </div>
+
+        <!-- TAB 1: CONSULTA DE PRESTADORES -->
+        <div id="admin-view-servicios" class="admin-body">
+          <form id="admin-place-form" class="admin-form" hidden>
+            <div class="admin-form__header">
+              <h4 id="admin-form-title">Agregar nuevo comercio / servicio</h4>
+              <button type="button" id="btn-cancel-edit" class="inline-link-btn hidden">Cancelar edición</button>
+            </div>
+
+            <input type="hidden" id="edit-place-id" value="" />
+
+            <div class="admin-grid-2">
+              <div class="field-group">
+                <label for="f-nombre">Nombre del comercio *</label>
+                <input type="text" id="f-nombre" required placeholder="Ej. Farmacia San Martín" />
+              </div>
+
+              <div class="field-group">
+                <label for="f-categoria">Categoría *</label>
+                <select id="f-categoria" required>
+                  <option value="alojamiento">Alojamiento</option>
+                  <option value="salud">Salud y farmacias</option>
+                  <option value="transporte">Transporte local</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="admin-grid-2">
+              <div class="field-group">
+                <label for="f-direccion">Dirección en San Pedro *</label>
+                <input type="text" id="f-direccion" required placeholder="Ej. Mitre 320, Centro" />
+              </div>
+
+              <div class="field-group">
+                <label for="f-estado">Estado / Horario corto *</label>
+                <input type="text" id="f-estado" required placeholder="Ej. Abierto · 08:00 a 22:00 hs" />
+              </div>
+            </div>
+
+            <div class="admin-grid-2">
+              <div class="field-group">
+                <label for="f-telefono">Teléfono (opcional)</label>
+                <input type="text" id="f-telefono" placeholder="Ej. +543888421234" />
+              </div>
+
+              <div class="field-group">
+                <label for="f-whatsapp">WhatsApp sin + (opcional)</label>
+                <input type="text" id="f-whatsapp" placeholder="Ej. 5493888421234" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="f-notas">Detalles, horarios completos o tarifas *</label>
+              <input type="text" id="f-notas" required placeholder="Ej. Lun a Sáb 08:00 a 22:00 hs · Obras sociales" />
+            </div>
+
+            <div class="admin-grid-2">
+              <div class="field-group">
+                <label for="f-zona">Zona de referencia en el mapa</label>
+                <select id="f-zona">
+                  <option value="-24.2312,-64.8682">Microcentro / Plaza Belgrano</option>
+                  <option value="-24.2304,-64.8683">Calle Vélez Sársfield</option>
+                  <option value="-24.2305,-64.8673">Calle Alberdi / Gdor. Tello</option>
+                  <option value="-24.2269,-64.8649">Zona Hospital Paterson / Av. Siria</option>
+                  <option value="-24.2348,-64.8641">Zona Terminal / Av. Perón</option>
+                  <option value="-24.2422,-64.8747">Zona Av. Brasil</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label for="f-promocion">Promoción / Beneficio (si es Destacado)</label>
+                <input type="text" id="f-promocion" placeholder="Ej. 15% desc. con TravelCare" />
+              </div>
+            </div>
+
+            <div class="admin-checks">
+              <label class="check-label">
+                <input type="checkbox" id="f-destacado" />
+                <span><strong>★ Perfil Destacado (Premium)</strong> — Aparece primero con insignia</span>
+              </label>
+              <label class="check-label">
+                <input type="checkbox" id="f-abierto" checked />
+                <span>Disponible / Abierto actualmente</span>
+              </label>
+            </div>
+
+            <div class="admin-form__actions">
+              <button type="submit" class="btn-admin-primary" id="btn-save-place">Guardar servicio</button>
+            </div>
+          </form>
+
+          <!-- Listado de solo lectura de servicios -->
+          <div class="admin-list-section">
+            <div class="admin-list-toolbar">
+              <input type="text" id="admin-search" class="admin-search-input" placeholder="Filtrar lista de administración..." />
+              <div class="admin-toolbar-btns">
+                <button type="button" id="btn-export-json" class="btn-admin-secondary" title="Descargar base de datos en JSON">Exportar JSON</button>
+              </div>
+            </div>
+
+            <div id="admin-places-table" class="admin-places-list"></div>
+          </div>
+        </div>
+
+        <!-- TAB 2: INTEGRANTES Y CONFIGURACIÓN DEL PROYECTO -->
+        <div id="admin-view-equipo" class="admin-body hidden">
+          <form id="admin-team-form" class="admin-form">
+            <h4>Datos académicos e integrantes del grupo</h4>
+            <p class="admin-help">
+              Estos datos se muestran automáticamente en la portada y en el pie de página de toda la plataforma.
+            </p>
+
+            <div class="field-group">
+              <label for="t-integrantes">Nombres de los integrantes del grupo *</label>
+              <textarea id="t-integrantes" rows="3" readonly></textarea>
+            </div>
+
+            <div class="field-group">
+              <label for="t-institucion">Cátedra, Carrera e Institución *</label>
+              <input type="text" id="t-institucion" readonly />
+            </div>
+
+            <div class="field-group">
+              <label for="t-destino">Destino Piloto y Año *</label>
+              <input type="text" id="t-destino" readonly />
+            </div>
+
+            <div class="admin-form__actions">
+              <button type="submit" class="btn-admin-primary" disabled>Edición pausada</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- Lógica, geolocalización efímera, panel admin y catálogo real de TravelCare -->
+  <script src="app.js"></script>
+</body>
+</html>

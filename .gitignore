@@ -1,0 +1,10 @@
+# Variables locales y credenciales
+.env
+.env.*
+!.env.example
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

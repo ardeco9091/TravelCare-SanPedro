@@ -1,0 +1,8 @@
+TRAVELCARE — PILOTO SAN PEDRO DE JUJUY
+==========================================================================
+Carrera: Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9
+Materia: Prácticas Profesionalizantes II · Destino Piloto: San Pedro de Jujuy
+
+PANEL DE CONSULTA:
+- Los prestadores e integrantes se pueden consultar desde el panel.
+- La edición está pausada hasta integrar Supabase Auth y persistencia en la base de datos.
