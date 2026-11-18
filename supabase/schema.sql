@@ -80,7 +80,7 @@ create policy "TravelCare admins manage project settings"
 insert into public.project_settings (id, integrantes, institucion, destino)
 values (
   'main',
-  'Mayra y equipo (Editá los nombres desde el botón Admin)',
+  'Cargando Equipo...',
   'Prácticas Profesionalizantes II · Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9',
   'Piloto San Pedro de Jujuy (2026)'
 )
