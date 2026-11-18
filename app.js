@@ -5,7 +5,7 @@
 // =========================================================
 const CENTRO_SAN_PEDRO = [-24.2312, -64.8682];
 const DEFAULT_TEAM = {
-  integrantes: "Mayra y equipo (Editá los nombres desde el botón Admin)",
+  integrantes: "Cargando equipo...",
   institucion: "Prácticas Profesionalizantes II · Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9",
   destino: "Piloto San Pedro de Jujuy (2026)"
 };
