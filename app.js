@@ -41,8 +41,8 @@ const DEFAULT_LUGARES = [
     notas: "Ubicación céntrica a pasos de Plaza Belgrano (4.2 ★) · Tel: (03888) 42-0446",
     telefono: "+543888420446",
     whatsapp: "5493888420446",
-    lat: -24.23102,
-    lng: -64.86855
+    lat: -24.2322782,
+    lng: -64.8699413
   },
   {
     id: 3,
@@ -57,8 +57,8 @@ const DEFAULT_LUGARES = [
     notas: "Habitaciones dobles y compartidas, comedor y bar · Tel: (03888) 42-0213",
     telefono: "+543888420213",
     whatsapp: "5493888420213",
-    lat: -24.22550,
-    lng: -64.86150
+    lat: -24.2409284,
+    lng: -64.8725849
   },
   {
     id: 4,
@@ -139,8 +139,8 @@ const DEFAULT_LUGARES = [
     notas: "Lun a Sáb 08:00 a 00:00 hs · Dom cerrado · Tel: (03888) 42-5994",
     telefono: "+543888425994",
     whatsapp: "5493888425994",
-    lat: -24.23052,
-    lng: -64.86732
+    lat: -24.2332449,
+    lng: -64.8662295
   },
   {
     id: 9,
@@ -155,8 +155,8 @@ const DEFAULT_LUGARES = [
     notas: "Hospital público de referencia · Guardia médica 24 hs · Tel: (03888) 42-0006",
     telefono: "+543888420006",
     whatsapp: null,
-    lat: -24.22685,
-    lng: -64.86490
+    lat: -24.2341507,
+    lng: -64.8723533
   },
   {
     id: 10,
