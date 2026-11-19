@@ -275,11 +275,22 @@
             <div class="filter-status">
               <span id="filter-label" class="filter-badge">Todos (25)</span>
               <button type="button" id="btn-reset-filter" class="reset-link hidden">Ver todos</button>
+              <button type="button" id="btn-map-mode" class="map-mode-toggle" aria-pressed="false">
+                Ver en Google Maps
+              </button>
             </div>
           </div>
 
           <div class="map-wrapper">
             <div id="map" role="region" aria-label="Mapa de servicios en San Pedro de Jujuy"></div>
+            <iframe
+              id="google-map-embed"
+              class="google-map-embed hidden"
+              title="Google Maps de San Pedro de Jujuy"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
             <button type="button" id="btn-recenter" class="recenter-btn" title="Centrar mapa en San Pedro de Jujuy" aria-label="Centrar mapa">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="4" />

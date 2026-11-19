@@ -493,6 +493,8 @@ let textoBusqueda = "";
 let ordenActual = "cercania";
 let soloAbiertos = false;
 let ubicacionUsuario = null;
+let lugarSeleccionadoGoogleId = null;
+let vistaGoogleMapsActiva = false;
 
 let mapa = null;
 let capaMarcadores = null;
@@ -514,6 +516,9 @@ const filterLabel = document.getElementById("filter-label");
 const resultsCountSide = document.getElementById("results-count-side");
 const btnResetFilter = document.getElementById("btn-reset-filter");
 const btnRecenter = document.getElementById("btn-recenter");
+const btnMapMode = document.getElementById("btn-map-mode");
+const mapElement = document.getElementById("map");
+const googleMapEmbed = document.getElementById("google-map-embed");
 const placesList = document.getElementById("places-list");
 
 const btnGeo = document.getElementById("btn-geo");
@@ -681,7 +686,7 @@ window.addEventListener("resize", () => {
 });
 
 // =========================================================
-// INICIALIZACIÓN DEL MAPA (LEAFLET + ESRI WORLD STREET MAP)
+// INICIALIZACIÓN DEL MAPA (LEAFLET + GOOGLE MAPS)
 // =========================================================
 function inicializarMapa() {
   mapa = L.map("map", {
@@ -691,10 +696,10 @@ function inicializarMapa() {
   });
 
   L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
     {
-      attribution: "Esri · San Pedro de Jujuy",
-      maxZoom: 19
+      attribution: "Google Maps · San Pedro de Jujuy",
+      maxZoom: 20
     }
   ).addTo(mapa);
 
@@ -705,6 +710,41 @@ function inicializarMapa() {
   renderizarServicios();
   setTimeout(() => mapa.invalidateSize(), 150);
 }
+
+function obtenerUrlMapaEmbebido(lugar = null) {
+  const consulta = lugar
+    ? `${lugar.nombre}, ${lugar.direccion}, San Pedro de Jujuy`
+    : "San Pedro de Jujuy";
+  return `https://maps.google.com/maps?q=${encodeURIComponent(consulta)}&output=embed`;
+}
+
+function seleccionarLugarParaGoogleMaps(lugar) {
+  lugarSeleccionadoGoogleId = lugar.id;
+  if (vistaGoogleMapsActiva) {
+    googleMapEmbed.src = obtenerUrlMapaEmbebido(lugar);
+  }
+}
+
+function alternarVistaGoogleMaps() {
+  vistaGoogleMapsActiva = !vistaGoogleMapsActiva;
+  mapElement.classList.toggle("hidden", vistaGoogleMapsActiva);
+  googleMapEmbed.classList.toggle("hidden", !vistaGoogleMapsActiva);
+  btnRecenter.classList.toggle("hidden", vistaGoogleMapsActiva);
+  btnMapMode.setAttribute("aria-pressed", String(vistaGoogleMapsActiva));
+  btnMapMode.textContent = vistaGoogleMapsActiva
+    ? `Mapa general (${LUGARES.length || 26})`
+    : "Ver en Google Maps";
+
+  if (vistaGoogleMapsActiva) {
+    const lugarSeleccionado = LUGARES.find((lugar) => lugar.id === lugarSeleccionadoGoogleId);
+    googleMapEmbed.src = obtenerUrlMapaEmbebido(lugarSeleccionado || null);
+  } else {
+    googleMapEmbed.removeAttribute("src");
+    setTimeout(() => mapa?.invalidateSize(), 100);
+  }
+}
+
+btnMapMode.addEventListener("click", alternarVistaGoogleMaps);
 
 function crearIconoPin(categoria) {
   const color = COLORES_CATEGORIA[categoria] || "#26333d";
@@ -815,6 +855,8 @@ function renderizarServicios() {
         .bindPopup(popupHtml, { maxWidth: 270 })
         .bindTooltip(`${lugar.nombre} (${distTexto})`);
 
+      marker.on("click", () => seleccionarLugarParaGoogleMaps(lugar));
+
       marker.addTo(capaMarcadores);
       marcadoresPorId[lugar.id] = marker;
       bounds.push([lugar.lat, lugar.lng]);
@@ -885,6 +927,7 @@ function renderizarServicios() {
 
     card.addEventListener("click", (e) => {
       if (e.target.closest("a")) return;
+      seleccionarLugarParaGoogleMaps(lugar);
       const marker = marcadoresPorId[lugar.id];
       if (marker && mapa) {
         mapa.setView([lugar.lat, lugar.lng], 16, { animate: true });
