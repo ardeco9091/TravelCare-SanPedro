@@ -434,6 +434,42 @@ const DEFAULT_LUGARES = [
   }
 ];
 
+// Fichas oficiales de Google Maps verificadas para los 26 registros iniciales.
+// Los enlaces se mantienen en el cliente para no cambiar el esquema de Supabase.
+const GOOGLE_MAPS_URL_BY_PLACE_ID = {
+  1: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJV5yJv3FZGpQRLBvyjsFcwYs",
+  2: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJoyZkgWVYGpQRn5M--x9-2PA",
+  3: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJaYk5nUJYGpQRdXXR6WH2sCY",
+  4: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJPUNeSntYGpQRauvnWDelZCc",
+  5: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJp-JvwXxYGpQRahiYk6mfmgo",
+  6: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJXXk3hqZZGpQRjPNmWkwME5c",
+  7: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJqSJCI2hYGpQRfDtCPN_8PFc",
+  8: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJoSvePmRYGpQRfPNJ290ruUg",
+  9: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ1yOXPG9YGpQRFkJ1dyAVD5Y",
+  10: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJheh1MmRYGpQR4jYeGVvnw3c",
+  11: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJH-Yo3WRYGpQRfaf4ZpYEZpk",
+  12: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJSwmAfmNYGpQRQY2u47wn1OY",
+  13: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ1aehyptZGpQR_yRkf1Z9Szs",
+  14: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJV4jEOmVYGpQRNZEYQwjhs7E",
+  15: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJa539zGVYGpQRsM-Pkdm4H18",
+  16: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJRSjii7NZGpQRPxF5t5dCyk8",
+  17: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ308YeWVYGpQRwFWD_9cGVpA",
+  18: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ8e6YZmRYGpQR3gSc-dJg_lM",
+  19: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJHe4uvWhYGpQRZXie0X0v-HQ",
+  20: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ_-KWdlhZGpQR-AIy01xLd8M",
+  21: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJHwLerkFYGpQR7prBQaFMmkE",
+  22: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJiYAWs89ZGpQRy8Qpt9M9emI",
+  23: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJw3V_LfZZGpQRlIRGI7IQWrs",
+  24: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJ84UVtHpYGpQRZdmZ_3WgBZs",
+  25: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJBTZQVbFZGpQRoBdEUExxCY4",
+  26: "https://www.google.com/maps/place//data=!4m2!3m1!19sChIJsa0unnpYGpQR44OYAuFAmFM"
+};
+
+function obtenerUrlGoogleMaps(lugar) {
+  return GOOGLE_MAPS_URL_BY_PLACE_ID[lugar.id] ||
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lugar.nombre} ${lugar.direccion}, San Pedro de Jujuy`)}`;
+}
+
 const COLORES_CATEGORIA = {
   alojamiento: "#26333d",
   salud: "#7f9278",
@@ -749,7 +785,7 @@ function renderizarServicios() {
     }
 
     filtrados.forEach((lugar) => {
-      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lugar.lat},${lugar.lng}`;
+      const googleMapsUrl = obtenerUrlGoogleMaps(lugar);
       const distTexto = formatearDistancia(lugar.distanciaKm);
       const waText = encodeURIComponent(`Hola ${lugar.nombre}, los encontré en TravelCare (San Pedro de Jujuy) y quería hacer una consulta.`);
       const waLink = lugar.whatsapp
@@ -798,7 +834,7 @@ function renderizarServicios() {
   }
 
   filtrados.forEach((lugar) => {
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lugar.lat},${lugar.lng}`;
+    const googleMapsUrl = obtenerUrlGoogleMaps(lugar);
     const distTexto = formatearDistancia(lugar.distanciaKm);
     const waText = encodeURIComponent(`Hola ${lugar.nombre}, los encontré en TravelCare (San Pedro de Jujuy) y quería hacer una consulta.`);
 

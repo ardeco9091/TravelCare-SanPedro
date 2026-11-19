@@ -1,23 +1,8 @@
-TRAVELCARE — PILOTO SAN PEDRO DE JUJUY
-==========================================================================
-Carrera: Tecnicatura Superior en Ciencia de Datos e IA — IES N.° 9
-Materia: Prácticas Profesionalizantes II · Destino Piloto: San Pedro de Jujuy
-
-PANEL DE CONSULTA:
-- Los prestadores e integrantes se pueden consultar desde el panel.
-- La edición se habilita al conectar Supabase Auth y la base de datos.
-
-CONFIGURAR SUPABASE:
-1. Crear un proyecto en Supabase.
-2. Abrir SQL Editor y ejecutar supabase/schema.sql y luego supabase/seed.sql.
-3. En Authentication → Users, crear el usuario administrador con correo y contraseña.
-4. En SQL Editor, habilitar ese usuario como administrador:
-   insert into public.admin_users (user_id)
-   select id from auth.users where email = 'TU_CORREO_DE_ADMIN';
-5. En Project Settings → API, copiar Project URL y la clave pública publishable/anon
-   en supabase-config.js.
-6. Configurar la URL pública de TravelCare en Authentication → URL Configuration
-   para permitir la sesión desde el sitio publicado.
-
-La clave publishable/anon es para el navegador y solo es segura con RLS activo.
-Nunca colocar una clave secret ni service_role en archivos del cliente.
+TRAVELCARE — UBICACIONES Y ENLACES DE GOOGLE MAPS CORREGIDOS (v8)
+==================================================================
+QUÉ SE CORRIGIÓ:
+1. Enlaces "Cómo llegar": Ahora abren directamente la ficha oficial de cada comercio en Google Maps mediante su Place ID verificado (evitando que Google Maps apunte al comercio vecino o a una plaza por coordenadas aproximadas).
+2. Coordenadas en el mapa Leaflet: Se recalibraron las 26 ubicaciones en San Pedro de Jujuy (incluyendo Residencial Candela, Radio Taxi Lapacho, La Casona, Hotel Bella Vista, Farmacia SAVIC, Farmacia La Perla y todas las clínicas y farmacias).
+3. Para sincronizar tu base de datos en Supabase:
+   - Abrí Supabase -> SQL Editor -> New query
+   - Pegá el contenido de supabase/actualizar_ubicaciones.sql y presioná Run.
